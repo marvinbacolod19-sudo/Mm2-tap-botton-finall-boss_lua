@@ -1,0 +1,145 @@
+-- EXODUS HUB | Murder Mystery 2 (Custom Build for Admin Noob_NoobX13)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "🔪 EXODUS HUB | Murder Mystery 2",
+   LoadingTitle = "Exodus Loading...",
+   LoadingSubtitle = "by Noob_NoobX13",
+   ConfigurationSaving = {
+      Enabled = false,
+   },
+   Discord = {
+      Enabled = false,
+   },
+   KeySystem = false
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local ESPTab = Window:CreateTab("ESP", 4483362458)
+
+-- Variables para sa Floating UI
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- ==========================================
+-- 🛠️ FLOATING UI SETUP (Draggable & Lockable)
+-- ==========================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = CoreGui
+ScreenGui.Name = "ExodusFloatingUI"
+
+local function createFloatingButton(name, text, position)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 120, 0, 45)
+    Frame.Position = position
+    Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Frame.BorderColor3 = Color3.fromRGB(0, 170, 255)
+    Frame.BorderSizePixel = 2
+    Frame.Parent = ScreenGui
+    Frame.Visible = false
+    Frame.Active = true
+    Frame.Draggable = true -- Default is draggable
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = Frame
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 1, 0)
+    Button.BackgroundTransparency = 1
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 16
+    Button.Parent = Frame
+
+    return Frame, Button
+end
+
+local ShootFrame, ShootBtn = createFloatingButton("ShootBtn", "🔫 SHOOT", UDim2.new(0.8, 0, 0.5, 0))
+local PrankFrame, PrankBtn = createFloatingButton("PrankBtn", "💣 PRANK", UDim2.new(0.8, 0, 0.6, 0))
+local JumpFrame, JumpBtn = createFloatingButton("JumpBtn", "🚀 BUG JUMP", UDim2.new(0.8, 0, 0.7, 0))
+
+-- ==========================================
+-- 🎯 MAIN TAB (Floating UI Toggles & Logic)
+-- ==========================================
+MainTab:CreateToggle({
+   Name = "Lock Floating UI",
+   CurrentValue = false,
+   Flag = "LockUI",
+   Callback = function(Value)
+        ShootFrame.Draggable = not Value
+        PrankFrame.Draggable = not Value
+        JumpFrame.Draggable = not Value
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Show Shoot Button",
+   CurrentValue = false,
+   Flag = "ShowShoot",
+   Callback = function(Value) ShootFrame.Visible = Value end,
+})
+
+MainTab:CreateToggle({
+   Name = "Show Prank Bomb Button",
+   CurrentValue = false,
+   Flag = "ShowPrank",
+   Callback = function(Value) PrankFrame.Visible = Value end,
+})
+
+MainTab:CreateToggle({
+   Name = "Show Bug Jump Button",
+   CurrentValue = false,
+   Flag = "ShowJump",
+   Callback = function(Value) JumpFrame.Visible = Value end,
+})
+
+-- ==========================================
+-- ⚙️ BUTTON FUNCTIONS
+-- ==========================================
+ShootBtn.MouseButton1Click:Connect(function()
+    -- Auto Equip Gun and Shoot Murderer Logic
+    local gun = LocalPlayer.Backpack:FindFirstChild("Gun") or LocalPlayer.Character:FindFirstChild("Gun")
+    if gun then
+        gun.Parent = LocalPlayer.Character -- Equip
+        -- Dito ilalagay ang fire server code para bumaril sa target (needs MM2 specific remote)
+        Rayfield:Notify({Title = "Exodus", Content = "Gun Equipped! Shooting Murderer...", Duration = 3})
+    else
+        Rayfield:Notify({Title = "Error", Content = "You don't have the gun!", Duration = 3})
+    end
+end)
+
+PrankBtn.MouseButton1Click:Connect(function()
+    -- Spawn invisible part to jump on
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(5, 1, 5)
+    part.Position = LocalPlayer.Character.HumanoidRootPart.Position - Vector3.new(0, 3, 0)
+    part.Anchored = true
+    part.Transparency = 0.5
+    part.Color = Color3.fromRGB(255, 0, 0)
+    part.Parent = workspace
+    LocalPlayer.Character.Humanoid.Jump = true
+    game.Debris:AddItem(part, 3) -- Mawawala after 3 seconds
+end)
+
+JumpBtn.MouseButton1Click:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = 120
+        LocalPlayer.Character.Humanoid.Jump = true
+        task.wait(1)
+        LocalPlayer.Character.Humanoid.JumpPower = 50 -- Reset back to normal
+    end
+end)
+
+-- ==========================================
+-- 🏃‍♂️ PLAYER TAB (Anti-Fling & Flingers)
+-- ==========================================
+PlayerTab:CreateToggle({
+   Name = "Anti-Fling",
+   CurrentValue = false,
+   Flag = "AntiFling",
+   Callback = function(Value)
+       -- Simple Anti-Fling Logic
